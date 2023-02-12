@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, print_function, unicode_literals
-
 from django.db.models import ForeignKey
 from django.urls import Resolver404, resolve
 from django.utils.translation import get_language_from_request, override
@@ -11,6 +8,13 @@ from app_data import AppDataContainer, app_registry
 
 # making key app/model specific to avoid inheritance issues
 APP_CONFIG_FIELDS_KEY = '_app_config_field_names_{app_label}_{model_name}'
+
+
+def get_path_info(request):
+    if hasattr(request, "toolbar"):
+        if hasattr(request.toolbar, "request_path"):
+            return request.toolbar.request_path
+    return request.path_info
 
 
 def get_app_instance(request):
@@ -27,7 +31,7 @@ def get_app_instance(request):
         try:
             config = None
             with override(get_language_from_request(request, check_path=True)):
-                namespace = resolve(request.path_info).namespace
+                namespace = resolve(get_path_info(request)).namespace
                 config = app.get_config(namespace)
             return namespace, config
         except Resolver404:
